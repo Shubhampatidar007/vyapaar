@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/auth.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="brand">
+      <div class="logo">🛍️</div>
+      <h1>Vyapaar-Mitra</h1>
+      <p class="tagline">Hyperlocal commerce, without mandatory inventory</p>
+    </header>
+
+    <section class="card">
+      {% block content %}{% endblock %}
+    </section>
+
+    <footer class="foot">
+      <p>🔒 Your password is only ever entered here, never in Telegram.</p>
+    </footer>
+  </main>
+</body>
+</html>

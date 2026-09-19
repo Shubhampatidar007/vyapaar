@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="status error">
+  <div class="status-icon">⚠️</div>
+  <h2>We couldn't complete that</h2>
+  <p class="sub">{{ message }}</p>
+  <p class="alt">Go back to Telegram and press <strong>🔐 Login / Register</strong> for a fresh link.</p>
+</div>
+{% endblock %}

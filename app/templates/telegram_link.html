@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Connect Telegram · {{ app_name }}{% endblock %}
+{% block content %}
+<h2>Connect your Telegram account</h2>
+<p class="sub">This link is single-use and expires in 10 minutes.</p>
+
+<div class="tabs" role="tablist">
+  <button type="button" class="tab active" data-target="login-pane">Log in</button>
+  <button type="button" class="tab" data-target="register-pane">Register</button>
+</div>
+
+<div id="login-pane" class="pane">
+  <form method="post" action="/auth/telegram/complete" novalidate>
+    <input type="hidden" name="token" value="{{ token }}" />
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+    <input type="hidden" name="mode" value="login" />
+
+    <label for="l_email">Email</label>
+    <input id="l_email" name="email" type="email" autocomplete="email" required />
+
+    <label for="l_password">Password</label>
+    <input id="l_password" name="password" type="password" autocomplete="current-password" required />
+
+    <button type="submit">Log in &amp; link Telegram</button>
+  </form>
+</div>
+
+<div id="register-pane" class="pane hidden">
+  <form method="post" action="/auth/telegram/complete" novalidate>
+    <input type="hidden" name="token" value="{{ token }}" />
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+    <input type="hidden" name="mode" value="register" />
+
+    <label for="r_name">Full name</label>
+    <input id="r_name" name="full_name" type="text" autocomplete="name" required />
+
+    <label for="r_email">Email</label>
+    <input id="r_email" name="email" type="email" autocomplete="email" required />
+
+    <label for="r_phone">Phone number</label>
+    <input id="r_phone" name="phone" type="tel" autocomplete="tel" required />
+
+    <label for="r_password">Password</label>
+    <input id="r_password" name="password" type="password" minlength="8"
+           autocomplete="new-password" required />
+    <p class="hint">At least 8 characters.</p>
+
+    <label for="r_role">I am a</label>
+    <select id="r_role" name="role">
+      <option value="customer" {% if role_hint == 'customer' %}selected{% endif %}>Customer</option>
+      <option value="shopkeeper" {% if role_hint == 'shopkeeper' %}selected{% endif %}>Shopkeeper</option>
+    </select>
+
+    <button type="submit">Register &amp; link Telegram</button>
+  </form>
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+      document.querySelectorAll('.pane').forEach(function (p) { p.classList.add('hidden'); });
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.target).classList.remove('hidden');
+    });
+  });
+</script>
+{% endblock %}

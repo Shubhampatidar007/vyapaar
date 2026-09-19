@@ -1,0 +1,138 @@
+"""Central configuration. Everything is driven by environment variables (.env)."""
+from functools import lru_cache
+from typing import List
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore", case_sensitive=False
+    )
+
+    # ---------------- App ----------------
+    APP_NAME: str = "Vyapaar-Mitra"
+    APP_HOST: str = "0.0.0.0"
+    APP_PORT: int = 8000
+    PUBLIC_BASE_URL: str = "http://localhost:8000"
+    LOG_LEVEL: str = "INFO"
+    DEMO_MODE: bool = True
+    RUN_BOT: bool = True
+
+    # ---------------- Telegram ----------------
+    TELEGRAM_BOT_TOKEN: str = ""
+    ADMIN_TELEGRAM_IDS: str = ""
+
+    # ---------------- MongoDB ----------------
+    MONGODB_URI: str = "mongodb://localhost:27017"
+    MONGODB_DATABASE: str = "vyapaar_mitra"
+
+    # ---------------- AI providers ----------------
+    PRIMARY_LLM_PROVIDER: str = "gemini"
+    FALLBACK_LLM_PROVIDER: str = "groq"
+    TERTIARY_LLM_PROVIDER: str = "gpt_oss"
+
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta"
+
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
+
+    # GPT-OSS (open-weight) served through any OpenAI-compatible endpoint
+    GPT_OSS_API_KEY: str = ""
+    GPT_OSS_MODEL: str = "openai/gpt-oss-20b"
+    GPT_OSS_BASE_URL: str = "https://api.groq.com/openai/v1"
+
+    SARVAM_API_KEY: str = ""
+    SARVAM_BASE_URL: str = "https://api.sarvam.ai"
+    SARVAM_STT_MODEL: str = "saarika:v2"
+    SARVAM_LANGUAGE: str = "hi-IN"
+
+    AI_TIMEOUT_SECONDS: float = 45.0
+
+    # ---------------- Matching ----------------
+    MATCH_RADIUS_METERS: int = 500
+    MAX_MATCH_RADIUS_METERS: int = 5000
+    RADIUS_EXPANSION_STEPS: str = "500,1000,2000,5000"
+    MAX_MERCHANTS_PER_REQUEST: int = 8
+    MERCHANT_COOLDOWN_HOURS: int = 12
+    REQUEST_EXPIRY_MINUTES: int = 30
+
+    WEIGHT_CATEGORY: float = 0.30
+    WEIGHT_CAPABILITY: float = 0.35
+    WEIGHT_DISTANCE: float = 0.20
+    WEIGHT_HISTORY: float = 0.15
+
+    CONFIDENCE_DIRECT: float = 0.80
+    CONFIDENCE_UNCERTAIN: float = 0.60
+
+    # ---------------- Security ----------------
+    SESSION_SECRET: str = "change-me-in-production"
+    AUTH_TOKEN_TTL_MINUTES: int = 10
+    SESSION_TTL_HOURS: int = 72
+    AUTH_RATE_LIMIT: int = 10
+    AUTH_RATE_WINDOW_SECONDS: int = 60
+    AI_RATE_LIMIT: int = 20
+    AI_RATE_WINDOW_SECONDS: int = 60
+    COOKIE_SECURE: bool = False
+
+    # ---------------- Email (optional) ----------------
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = ""
+    SMTP_USE_TLS: bool = True
+    ENABLE_SCHEDULED_REPORTS: bool = False
+    DEMAND_REPORT_HOUR: int = 20
+
+    @field_validator("PRIMARY_LLM_PROVIDER", "FALLBACK_LLM_PROVIDER", "TERTIARY_LLM_PROVIDER")
+    @classmethod
+    def _lower(cls, v: str) -> str:
+        return (v or "").strip().lower()
+
+    # ---------------- Derived helpers ----------------
+    @property
+    def admin_ids(self) -> List[int]:
+        out = []
+        for chunk in self.ADMIN_TELEGRAM_IDS.split(","):
+            chunk = chunk.strip()
+            if chunk.isdigit():
+                out.append(int(chunk))
+        return out
+
+    @property
+    def radius_steps(self) -> List[int]:
+        steps = []
+        for chunk in self.RADIUS_EXPANSION_STEPS.split(","):
+            chunk = chunk.strip()
+            if chunk.isdigit() and int(chunk) <= self.MAX_MATCH_RADIUS_METERS:
+                steps.append(int(chunk))
+        if not steps:
+            steps = [self.MATCH_RADIUS_METERS, self.MAX_MATCH_RADIUS_METERS]
+        return sorted(set(steps))
+
+    @property
+    def llm_chain(self) -> List[str]:
+        chain = [self.PRIMARY_LLM_PROVIDER, self.FALLBACK_LLM_PROVIDER, self.TERTIARY_LLM_PROVIDER]
+        seen, out = set(), []
+        for name in chain:
+            if name and name not in seen:
+                seen.add(name)
+                out.append(name)
+        return out
+
+    @property
+    def email_enabled(self) -> bool:
+        return bool(self.SMTP_HOST and self.SMTP_FROM_EMAIL)
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()
