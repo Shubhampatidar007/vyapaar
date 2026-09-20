@@ -57,12 +57,21 @@ async def create_auth_link(telegram_user_id: int, purpose: str = TokenPurpose.LI
         token_hash=token_hash, telegram_user_id=telegram_user_id, purpose=purpose,
         ttl_minutes=settings.AUTH_TOKEN_TTL_MINUTES, role_hint=role_hint,
     )
-    await m.auth_tokens().insert_one(doc)
-    # Invalidate older unused tokens for this Telegram user.
-    await m.auth_tokens().update_many(
-        {"telegram_user_id": telegram_user_id, "used": False, "token_hash": {"$ne": token_hash}},
-        {"$set": {"used": True}},
-    )
+    try:
+        await m.auth_tokens().insert_one(doc)
+        # Invalidate older unused tokens for this Telegram user.
+        await m.auth_tokens().update_many(
+            {"telegram_user_id": telegram_user_id, "used": False, "token_hash": {"$ne": token_hash}},
+            {"$set": {"used": True}},
+        )
+    except Exception as exc:
+        logger.warning(
+            "Unable to persist Telegram auth link | error=%s",
+            exc.__class__.__name__,
+        )
+        raise AuthError(
+            "Secure login link abhi generate nahi ho paaya. Thodi der baad dobara try kijiye."
+        ) from exc
     base = settings.PUBLIC_BASE_URL.rstrip("/")
     return f"{base}/auth/telegram?token={raw}"
 
