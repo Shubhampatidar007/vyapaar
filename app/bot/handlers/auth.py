@@ -1,13 +1,12 @@
 """Secure account linking from Telegram. No passwords ever pass through chat."""
 from telegram import Update
-
-from app.utils.logging import get_logger
 from telegram.ext import ContextTypes
 
 from app.bot import keyboards, states
 from app.bot.handlers.start import _menu_for
 from app.bot.middleware import current_user, require_db, telegram_id, with_request_id
 from app.services import auth_service
+from app.utils.logging import get_logger
 from app.utils.security import auth_limiter
 
 logger = get_logger(__name__)
