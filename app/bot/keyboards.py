@@ -32,6 +32,7 @@ def customer_menu() -> ReplyKeyboardMarkup:
             ["📷 Photo Search", "📍 My Location"],
             ["🧾 My Requests", "📒 My Khata"],
             ["⚙️ Profile"],
+            ["🚪 Logout"],
         ],
         resize_keyboard=True,
     )
@@ -44,6 +45,7 @@ def merchant_menu() -> ReplyKeyboardMarkup:
             ["🔔 Requests", "📊 Demand"],
             ["📒 Khata", "📍 Location"],
             ["⚙️ Settings"],
+            ["🚪 Logout"],
         ],
         resize_keyboard=True,
     )
