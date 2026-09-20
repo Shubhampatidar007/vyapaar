@@ -26,7 +26,11 @@ async def auth_link_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
 
     role_hint = context.user_data.get(states.PENDING_ROLE)
-    url = await auth_service.create_auth_link(tg_id, role_hint=role_hint)
+    try:
+        url = await auth_service.create_auth_link(tg_id, role_hint=role_hint)
+    except auth_service.AuthError as exc:
+        await query.message.reply_text(f"⚠️ {exc}")
+        return
     await query.message.reply_text(
         "🔐 Secure login/registration page:\n\n"
         "• Link 10 minute valid hai\n"
@@ -62,9 +66,13 @@ async def login_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if user:
         await update.effective_message.reply_text("✅ Aap already logged in hain.")
         return
-    url = await auth_service.create_auth_link(
-        tg_id, role_hint=context.user_data.get(states.PENDING_ROLE)
-    )
+    try:
+        url = await auth_service.create_auth_link(
+            tg_id, role_hint=context.user_data.get(states.PENDING_ROLE)
+        )
+    except auth_service.AuthError as exc:
+        await update.effective_message.reply_text(f"⚠️ {exc}")
+        return
     await update.effective_message.reply_text(
         "🔐 Secure login page:", reply_markup=keyboards.auth_keyboard(url)
     )
