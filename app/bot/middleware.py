@@ -52,7 +52,13 @@ async def send_link_prompt(update: Update, role_hint: Optional[str] = None) -> N
     tg_id = telegram_id(update)
     if not tg_id:
         return
-    url = await auth_service.create_auth_link(tg_id, role_hint=role_hint)
+    try:
+        url = await auth_service.create_auth_link(tg_id, role_hint=role_hint)
+    except auth_service.AuthError as exc:
+        target = update.effective_message
+        if target:
+            await target.reply_text(f"⚠️ {exc}")
+        return
     target = update.effective_message
     if target:
         await target.reply_text(LINK_PROMPT, reply_markup=auth_keyboard(url))
