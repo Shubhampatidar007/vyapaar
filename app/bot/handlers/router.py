@@ -7,7 +7,7 @@ from telegram.ext import ContextTypes
 
 from app.bot import states
 from app.bot.handlers import customer, demand, inventory, khata, merchant, search
-from app.bot.handlers.start import _menu_for
+from app.bot.handlers.start import _menu_for, logout_command
 from app.bot.middleware import current_user, require_db, send_link_prompt, with_request_id
 from app.models.user import UserRole
 from app.utils.logging import get_logger
@@ -46,6 +46,10 @@ async def text_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if text == "⬅️ Back":
         states.clear_mode(context)
         await _menu_for(update, user)
+        return
+
+    if text == "🚪 Logout":
+        await logout_command(update, context)
         return
 
     role = user.get("role")

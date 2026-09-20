@@ -4,6 +4,7 @@ from telegram.ext import ContextTypes
 
 from app.bot import keyboards, states
 from app.bot.middleware import current_user, require_db, send_link_prompt, with_request_id
+from app.services import auth_service
 from app.models.user import UserRole
 
 WELCOME = "Welcome to Vyapaar-Mitra 🛍️\n\nWho are you?"
@@ -69,6 +70,31 @@ async def menu_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await send_link_prompt(update)
         return
     await _menu_for(update, user)
+
+
+@with_request_id
+@require_db
+async def logout_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    tg_id = update.effective_user.id if update.effective_user else None
+    if not tg_id:
+        return
+
+    logged_out = await auth_service.logout_telegram_account(tg_id)
+    states.clear_mode(context)
+    context.user_data.clear()
+
+    if logged_out:
+        await update.effective_message.reply_text(
+            "✅ Logout ho gaya. Aapka account delete nahi hua hai.\n\n"
+            "Dobara use karne ke liye /start dabaiye.",
+            reply_markup=keyboards.remove_keyboard(),
+        )
+    else:
+        await update.effective_message.reply_text(
+            "ℹ️ Koi linked account nahi mila.\n\n"
+            "Login karne ke liye /start dabaiye.",
+            reply_markup=keyboards.remove_keyboard(),
+        )
 
 
 @with_request_id
