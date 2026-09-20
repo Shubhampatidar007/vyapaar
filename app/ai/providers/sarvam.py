@@ -16,7 +16,13 @@ class SarvamSTTProvider(STTProvider):
     def __init__(self) -> None:
         self.api_key = settings.SARVAM_API_KEY
         self.base_url = settings.SARVAM_BASE_URL.rstrip("/")
-        self.model = settings.SARVAM_STT_MODEL
+        configured_model = settings.SARVAM_STT_MODEL.strip()
+        # Keep older local .env files working after Sarvam retired the old default.
+        self.model = (
+            "saaras:v4"
+            if configured_model in {"saarika:v2", "saarika:v2.5"}
+            else configured_model
+        )
 
     @property
     def is_configured(self) -> bool:
@@ -35,6 +41,7 @@ class SarvamSTTProvider(STTProvider):
         data = {
             "model": self.model,
             "language_code": language_code or settings.SARVAM_LANGUAGE,
+            "mode": "transcribe",
         }
         try:
             async with httpx.AsyncClient(timeout=settings.AI_TIMEOUT_SECONDS) as client:
