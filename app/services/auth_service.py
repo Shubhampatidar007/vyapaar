@@ -198,6 +198,29 @@ async def is_linked(telegram_user_id: int) -> bool:
     return await get_user_by_telegram_id(telegram_user_id) is not None
 
 
+async def logout_telegram_account(telegram_user_id: int) -> bool:
+    """Unlink a Telegram account without deleting the underlying user account."""
+    if not telegram_user_id:
+        return False
+
+    user = await m.users().find_one({"telegram_user_id": telegram_user_id})
+    if not user:
+        return False
+
+    await m.users().update_one(
+        {"_id": user["_id"], "telegram_user_id": telegram_user_id},
+        {"$set": {"updated_at": utcnow()}, "$unset": {"telegram_user_id": ""}},
+    )
+
+    for collection in (m.customers(), m.shops()):
+        await collection.update_one(
+            {"user_id": user["_id"], "telegram_user_id": telegram_user_id},
+            {"$set": {"updated_at": utcnow()}, "$unset": {"telegram_user_id": ""}},
+        )
+
+    return True
+
+
 # ---------------- Sessions ----------------
 async def create_session(user: Dict) -> str:
     session_id = secrets.token_urlsafe(24)
