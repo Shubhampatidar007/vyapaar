@@ -60,8 +60,18 @@ async def send_link_prompt(update: Update, role_hint: Optional[str] = None) -> N
             await target.reply_text(f"⚠️ {exc}")
         return
     target = update.effective_message
-    if target:
+    if not target:
+        return
+    try:
         await target.reply_text(LINK_PROMPT, reply_markup=auth_keyboard(url))
+    except Exception as exc:
+        logger.warning(
+            "Telegram auth-link button message failed | error=%s",
+            exc.__class__.__name__,
+        )
+        await target.reply_text(
+            f"{LINK_PROMPT}\n\n🔗 Secure login link:\n{url}"
+        )
 
 
 def with_request_id(func):

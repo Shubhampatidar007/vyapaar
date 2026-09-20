@@ -6,7 +6,10 @@ from app.bot import keyboards, states
 from app.bot.handlers.start import _menu_for
 from app.bot.middleware import current_user, require_db, telegram_id, with_request_id
 from app.services import auth_service
+from app.utils.logging import get_logger
 from app.utils.security import auth_limiter
+
+logger = get_logger(__name__)
 
 
 @with_request_id
@@ -31,13 +34,23 @@ async def auth_link_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
     except auth_service.AuthError as exc:
         await query.message.reply_text(f"⚠️ {exc}")
         return
-    await query.message.reply_text(
-        "🔐 Secure login/registration page:\n\n"
-        "• Link 10 minute valid hai\n"
-        "• Sirf ek baar use hoga\n"
-        "• Password sirf website par daaliye",
-        reply_markup=keyboards.auth_keyboard(url),
-    )
+    try:
+        await query.message.reply_text(
+            "🔐 Secure login/registration page:\n\n"
+            "• Link 10 minute valid hai\n"
+            "• Sirf ek baar use hoga\n"
+            "• Password sirf website par daaliye",
+            reply_markup=keyboards.auth_keyboard(url),
+        )
+    except Exception as exc:
+        logger.warning(
+            "Telegram auth-link button message failed | error=%s",
+            exc.__class__.__name__,
+        )
+        await query.message.reply_text(
+            "🔐 Secure login/registration page:\n\n"
+            f"🔗 Secure login link:\n{url}"
+        )
 
 
 @with_request_id
@@ -73,6 +86,15 @@ async def login_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     except auth_service.AuthError as exc:
         await update.effective_message.reply_text(f"⚠️ {exc}")
         return
-    await update.effective_message.reply_text(
-        "🔐 Secure login page:", reply_markup=keyboards.auth_keyboard(url)
-    )
+    try:
+        await update.effective_message.reply_text(
+            "🔐 Secure login page:", reply_markup=keyboards.auth_keyboard(url)
+        )
+    except Exception as exc:
+        logger.warning(
+            "Telegram auth-link button message failed | error=%s",
+            exc.__class__.__name__,
+        )
+        await update.effective_message.reply_text(
+            f"🔗 Secure login link:\n{url}"
+        )
