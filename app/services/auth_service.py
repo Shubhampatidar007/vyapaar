@@ -7,7 +7,7 @@ import secrets
 from typing import Dict, Optional, Tuple
 
 from bson import ObjectId
-from pymongo.errors import DuplicateKeyError
+from pymongo.errors import DuplicateKeyError, PyMongoError
 
 from app.config.settings import settings
 from telegram import Bot
@@ -64,7 +64,7 @@ async def create_auth_link(telegram_user_id: int, purpose: str = TokenPurpose.LI
             {"telegram_user_id": telegram_user_id, "used": False, "token_hash": {"$ne": token_hash}},
             {"$set": {"used": True}},
         )
-    except Exception as exc:
+    except PyMongoError as exc:
         logger.warning(
             "Unable to persist Telegram auth link | error=%s",
             exc.__class__.__name__,
