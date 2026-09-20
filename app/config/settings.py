@@ -48,7 +48,7 @@ class Settings(BaseSettings):
 
     SARVAM_API_KEY: str = ""
     SARVAM_BASE_URL: str = "https://api.sarvam.ai"
-    SARVAM_STT_MODEL: str = "saarika:v2"
+    SARVAM_STT_MODEL: str = "saaras:v4"
     SARVAM_LANGUAGE: str = "hi-IN"
 
     AI_TIMEOUT_SECONDS: float = 45.0
