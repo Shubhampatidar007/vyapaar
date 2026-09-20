@@ -5,6 +5,9 @@
   <div class="status-icon">✅</div>
   <h2>{{ title }}</h2>
   <p class="sub">{{ message }}</p>
+  {% if telegram_url %}
+  <p><a class="button" href="{{ telegram_url }}" target="_blank" rel="noopener noreferrer">📱 Open Telegram</a></p>
+  {% endif %}
   {% if full_name %}
   <dl class="summary">
     <dt>Name</dt><dd>{{ full_name }}</dd>

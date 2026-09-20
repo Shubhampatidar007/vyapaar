@@ -10,6 +10,7 @@ from bson import ObjectId
 from pymongo.errors import DuplicateKeyError
 
 from app.config.settings import settings
+from telegram import Bot
 from app.database import mongo as m
 from app.models.auth import TokenPurpose, build_auth_token_document, build_session_document
 from app.models.customer import build_customer_document
@@ -21,6 +22,27 @@ from app.utils.security import (
 )
 
 logger = get_logger(__name__)
+
+_telegram_bot_username: Optional[str] = None
+
+
+async def get_telegram_bot_url() -> Optional[str]:
+    """Resolve and cache the public Telegram bot URL from the configured bot token."""
+    global _telegram_bot_username
+    if _telegram_bot_username:
+        return f"https://t.me/{_telegram_bot_username}"
+    if not settings.TELEGRAM_BOT_TOKEN:
+        return None
+    try:
+        async with Bot(settings.TELEGRAM_BOT_TOKEN) as bot:
+            me = await bot.get_me()
+        if not me.username:
+            return None
+        _telegram_bot_username = me.username
+        return f"https://t.me/{me.username}"
+    except Exception as exc:
+        logger.warning("Unable to resolve Telegram bot username: %s", exc.__class__.__name__)
+        return None
 
 
 class AuthError(Exception):

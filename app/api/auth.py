@@ -118,6 +118,7 @@ async def telegram_complete(
         request, "success.html",
         title="Telegram account linked successfully.",
         message="You can close this page and return to Telegram.",
+        telegram_url=await auth_service.get_telegram_bot_url(),
         full_name=user.get("full_name"), role=user.get("role"),
     )
     set_session_cookie(response, session_id)
@@ -152,6 +153,7 @@ async def login_submit(
     response = _render(
         request, "success.html", title="Logged in successfully.",
         message="Open Telegram and press /start to continue.",
+        telegram_url=await auth_service.get_telegram_bot_url(),
         full_name=user.get("full_name"), role=user.get("role"),
     )
     set_session_cookie(response, session_id)
@@ -199,6 +201,7 @@ async def register_submit(
     response = _render(
         request, "success.html", title="Account created.",
         message="Now open Telegram, press 🔐 Login / Register and use the secure link to connect.",
+        telegram_url=await auth_service.get_telegram_bot_url(),
         full_name=user.get("full_name"), role=user.get("role"),
     )
     set_session_cookie(response, session_id)
